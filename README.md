@@ -874,12 +874,6 @@ This case shows how to move from:
 * month-level activity flags  
   to
 * aggregated KPI outputs
-
-That is very similar to how analytics engineers and data analysts build metrics tables.
-
-***
-
-
 ***
 
 
