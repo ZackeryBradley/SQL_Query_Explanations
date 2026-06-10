@@ -1,0 +1,218 @@
+Here’s a **GitHub-ready intermediate SQL practice section**—stepped up with **joins, window functions, subqueries, and ranking**, aligned with the kind of problems you’d see in real analyst/analytics engineer work.
+
+***
+
+# 📊 Intermediate SQL Query Practice
+
+## 🧩 Problem
+
+You are working with two tables:
+
+### `employees`
+
+```sql
+employees
+---------
+id (INT)
+name (VARCHAR)
+department_id (INT)
+salary (INT)
+hire_date (DATE)
+```
+
+### `departments`
+
+```sql
+departments
+------------
+department_id (INT)
+department_name (VARCHAR)
+```
+
+***
+
+### Sample Data
+
+#### employees
+
+| id | name    | department\_id | salary | hire\_date |
+| -- | ------- | -------------- | ------ | ---------- |
+| 1  | Alice   | 1              | 60000  | 2021-06-15 |
+| 2  | Bob     | 2              | 80000  | 2020-03-10 |
+| 3  | Charlie | 2              | 75000  | 2022-01-05 |
+| 4  | Diana   | 3              | 90000  | 2019-11-20 |
+| 5  | Evan    | 1              | 65000  | 2023-07-01 |
+| 6  | Frank   | 2              | 95000  | 2021-09-18 |
+
+***
+
+#### departments
+
+| department\_id | department\_name |
+| -------------- | ---------------- |
+| 1              | HR               |
+| 2              | IT               |
+| 3              | Finance          |
+
+***
+
+## ❓ Questions
+
+Write SQL queries to:
+
+1. Join employees with departments and display employee names with department names
+2. Find the **highest-paid employee in each department**
+3. Rank employees by salary within each department
+4. Calculate the **running total of salaries** by department
+5. Find employees who earn **above the company average salary**
+6. Get the **second highest salary** in the company
+
+***
+
+## ✅ Solutions
+
+### 1. Employees with department names (JOIN)
+
+```sql
+SELECT e.name, d.department_name, e.salary
+FROM employees e
+JOIN departments d
+    ON e.department_id = d.department_id;
+```
+
+***
+
+### 2. Highest-paid employee per department
+
+```sql
+SELECT d.department_name, e.name, e.salary
+FROM employees e
+JOIN departments d
+    ON e.department_id = d.department_id
+WHERE e.salary = (
+    SELECT MAX(e2.salary)
+    FROM employees e2
+    WHERE e2.department_id = e.department_id
+);
+```
+
+***
+
+### 3. Rank employees by salary within each department
+
+```sql
+SELECT 
+    e.name,
+    d.department_name,
+    e.salary,
+    RANK() OVER (PARTITION BY e.department_id ORDER BY e.salary DESC) AS salary_rank
+FROM employees e
+JOIN departments d
+    ON e.department_id = d.department_id;
+```
+
+***
+
+### 4. Running total of salaries by department
+
+```sql
+SELECT 
+    e.name,
+    d.department_name,
+    e.salary,
+    SUM(e.salary) OVER (
+        PARTITION BY e.department_id 
+        ORDER BY e.salary
+    ) AS running_total
+FROM employees e
+JOIN departments d
+    ON e.department_id = d.department_id;
+```
+
+***
+
+### 5. Employees earning above average salary
+
+```sql
+SELECT name, salary
+FROM employees
+WHERE salary > (
+    SELECT AVG(salary) FROM employees
+);
+```
+
+***
+
+### 6. Second highest salary in the company
+
+```sql
+SELECT MAX(salary) AS second_highest_salary
+FROM employees
+WHERE salary < (SELECT MAX(salary) FROM employees);
+```
+
+***
+
+## 🧠 Explanation
+
+### 🔹 JOINs
+
+Joins combine data from multiple tables using a shared key.
+
+* `INNER JOIN` returns matching rows from both tables
+* Essential for normalized databases (like your star schema work)
+
+***
+
+### 🔹 Subqueries
+
+A query inside another query.
+
+* Used for comparisons (`> AVG(salary)`)
+* Can be correlated (dependent on outer query) or independent
+
+***
+
+### 🔹 Window Functions
+
+Window functions perform calculations **across a set of rows without collapsing them**.
+
+#### Common ones:
+
+* `RANK()` → ranking with gaps
+* `DENSE_RANK()` → ranking without gaps
+* `ROW_NUMBER()` → unique row order
+* `SUM() OVER()` → running totals
+
+***
+
+### 🔹 PARTITION BY
+
+Splits data into groups for window functions (similar to `GROUP BY`, but keeps rows).
+
+Example:
+
+```sql
+RANK() OVER (PARTITION BY department_id ORDER BY salary DESC)
+```
+
+→ Ranks employees **within each department**
+
+***
+
+### 🔹 ORDER BY (in window functions)
+
+Defines how calculations progress (e.g., running total order)
+
+***
+
+### 🔹 Business Context
+
+These patterns are heavily used in real analytics work:
+
+* **Top performers by department** → performance dashboards
+* **Ranking employees/customers/products** → KPI tracking
+* **Running totals** → revenue trends over time
+* **Above-average filtering** → anomaly detection
+
+***
